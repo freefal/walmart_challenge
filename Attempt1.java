@@ -4,7 +4,7 @@ import java.util.*;
 
 public class Attempt1 {
 	static ArrayList<SalesDataPoint> salesData;
-	static ArrayList<WeatherDataPoint> salesData;
+	static ArrayList<WeatherDataPoint> weatherData;
 	static ArrayList<KeyDataPoint> keyData;
 
 	public static void main(String[] args) {
@@ -17,6 +17,10 @@ public class Attempt1 {
 			salesData = readSalesData(salesFilename);
 			weatherData = readWeatherData(weatherFilename);
 			keyData = readKeyData(keyFilename);
+
+			System.out.println(salesData.get(0));
+			System.out.println(weatherData.get(1));
+			System.out.println(keyData.get(2));
 		} catch (Exception e) { e.printStackTrace(); }
 	}
 
