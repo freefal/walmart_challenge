@@ -22,10 +22,17 @@ public class Attempt1 {
 		
 		keyMap = createKeyLookup(keyData);
 		weatherMap = createWeatherLookup(weatherData);
-
-		// attachWeatherData(salesData, weatherData, keyData);
 		
-		// OLSInput[][] olsinputs = new OLSInput[storeCount][itemCount];
+		System.out.println("All data read");
+		attachWeatherData(salesData, weatherData, keyData);
+		System.out.println("Weather attached");
+		
+		OLSInput[][] olsinputs = new OLSInput[storeCount][itemCount];
+		
+		for (int i = 0; i < olsinputs.length; i++)
+			for (int j = 0; j < olsnputs[i].length; j++) {
+				
+			}
 		
 	}
 
@@ -99,12 +106,18 @@ public class Attempt1 {
 	}
 	
 	public static void attachWeatherData (ArrayList<SalesDataPoint> salesData, ArrayList<WeatherDataPoint> weatherData, ArrayList<KeyDataPoint> keyData) {
+		int count = 0;
+		int size = salesData.size();
 		for (SalesDataPoint sdp : salesData) {
 			int station = keyMap.get(sdp.store);
 			WeatherDataPoint todayWeather = weatherMap.get(station + "-" + sdp.date);
 			//Date tomorrowDate = new Date(date.
 			//WeatherDataPoint tomorrowWeather = weatherMap.get(station + "-" + tomorrowDate);
 			sdp.todayWeather = todayWeather;
+			count++;
+			if ((count % 1000) == 0) {
+				System.out.println(count + " of " + size);
+			}
 		}
 	}
 }
