@@ -10,14 +10,21 @@
 
     <target name="compile">
         <mkdir dir="build/classes"/>
-        <javac srcdir="src" destdir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes">
+            <classpath>
+                <path refid="classpath"/>
+            </classpath>
+		</javac>
     </target>
 
     <target name="jar" depends="compile">
         <mkdir dir="build/jar"/>
         <jar destfile="build/jar/Attempt1.jar" basedir="build/classes">
+			<fileset dir="build/classes" includes="**/*.class" />
+            <fileset dir="lib" includes="**/*.jar" />
             <manifest>
                 <attribute name="Main-Class" value="Attempt1"/>
+				<attribute name="Class-Path" value="${classpath}"/>
             </manifest>
         </jar>
     </target>
@@ -26,8 +33,12 @@
          <java fork="true" classname="Attempt1">
             <classpath>
                 <path refid="classpath"/>
-                <path location="build/jar/Attempt1.jar"/>
+                <path location="**/*.jar"/>
             </classpath>
+			<arg path="data/train.csv"/>
+			<arg path="data/weather.csv"/>
+			<arg path="data/key.csv"/>
+			<arg path="data/test.csv"/>
         </java>
     </target>
 
