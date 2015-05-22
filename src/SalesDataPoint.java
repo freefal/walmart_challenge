@@ -42,4 +42,12 @@ public class SalesDataPoint {
 		} catch (Exception e) { e.printStackTrace(); }
 		return dp;
 	}
+
+	public String toString () {
+		return store + "_" + item + "_" + df.format(date) + "," + units;
+	}
+
+	public static String formatDate(Date date) {
+		return df.format(date);
+	}
 }

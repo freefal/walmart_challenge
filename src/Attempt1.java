@@ -25,11 +25,8 @@ public class Attempt1 {
 		
 		keyMap = createKeyLookup(keyData);
 		weatherMap = createWeatherLookup(weatherData);
-		
-		System.out.println("Going to Attach Weather");
-		attachWeatherData(salesData, weatherData, keyData);
-		System.out.println("Attached Weather");
-		
+		attachWeatherData(salesData);
+		attachWeatherData(testData);
 		OLSInput[][] olsinputs = new OLSInput[storeCount][itemCount];
 		
 		for (int i = 0; i < olsinputs.length; i++) {
@@ -38,8 +35,6 @@ public class Attempt1 {
 			}
 		}
 	
-		System.out.println("Going to set up OLSInputs");
-		
 		for (SalesDataPoint sdp : salesData) {
 			OLSInput oi = olsinputs[sdp.store - 1][sdp.item - 1];
 			double precipitation = 0.0;
@@ -52,22 +47,46 @@ public class Attempt1 {
 		keyData = null;
 		keyMap = null;
 		
-		System.out.println("Set up OLSInputs");
-
 		double[][][] betas = new double[storeCount][itemCount][2];
 		for (int i = 0; i < olsinputs.length; i++) {
 			for (int j = 0; j < olsinputs[i].length; j++) {
+
 				double[] y = ArrayUtils.toPrimitive(olsinputs[i][j].y.toArray(new Double[0]));
-				double[][] x = new double[2][olsinputs[i][j].x1.size()];
-				x[0] = ArrayUtils.toPrimitive(olsinputs[i][j].x1.toArray(new Double[0]));
-				x[1] = ArrayUtils.toPrimitive(olsinputs[i][j].x2.toArray(new Double[0]));
-				
-				OLSMultipleLinearRegression ols = new OLSMultipleLinearRegression ();
+				double[][] x = new double[olsinputs[i][j].x1.size()][2];
+				for (int k = 0; k < x.length; k++) {
+					x[k][0] = olsinputs[i][j].x1.get(k);
+					x[k][1] = olsinputs[i][j].x2.get(k);
+				}
+					
+				OLSMultipleLinearRegression ols = new OLSMultipleLinearRegression();
 				ols.newSampleData(y, x);
-				betas[i][j] = ols.estimateRegressionParameters();
+				try {
+					betas[i][j] = ols.estimateRegressionParameters();
+				} catch (Exception e) {
+					betas[i][j][0] = 0.0;
+					betas[i][j][1] = 0.0;
+				}
 			}
 		}
 		olsinputs = null;
+
+		System.out.println("id,units");
+		for (SalesDataPoint sdp : testData) {
+			WeatherDataPoint wdp = sdp.todayWeather;
+			double[] b = betas[sdp.store-1][sdp.item-1];
+			try {
+			double precipitation = (wdp.snowfall > 0.0 || wdp.preciptotal > 0.0) ? 1.0 : 0.0;
+			int units = (int) (b[0]*1.0 + b[1]*precipitation);
+			sdp.units = units;
+			System.out.println(sdp.toString());
+			} catch (Exception e) {
+				/*
+				System.err.println(sdp);
+				System.err.println(sdp.todayWeather);
+				System.err.println(b);
+				*/
+			}
+		}
 	}
 
 	public static ArrayList<SalesDataPoint> readSalesData (String filename) throws Exception {
@@ -134,15 +153,19 @@ public class Attempt1 {
 	
 	public static HashMap<String,WeatherDataPoint> createWeatherLookup(ArrayList<WeatherDataPoint> weatherData) {
 		HashMap<String,WeatherDataPoint> weatherMap = new HashMap<String,WeatherDataPoint>();
-		for (WeatherDataPoint wdp : weatherData)
-			weatherMap.put(wdp.station + "-" + wdp.date, wdp);
+		for (WeatherDataPoint wdp : weatherData) {
+			weatherMap.put(wdp.station + "-" + SalesDataPoint.formatDate(wdp.date), wdp);
+		}
 		return weatherMap;	
 	}
 	
-	public static void attachWeatherData (ArrayList<SalesDataPoint> salesData, ArrayList<WeatherDataPoint> weatherData, ArrayList<KeyDataPoint> keyData) {
-		for (SalesDataPoint sdp : salesData) {
+	public static void attachWeatherData (ArrayList<SalesDataPoint> data) {
+		for (SalesDataPoint sdp : data) {
 			int station = keyMap.get(sdp.store);
-			WeatherDataPoint todayWeather = weatherMap.get(station + "-" + sdp.date);
+			WeatherDataPoint todayWeather = weatherMap.get(station + "-" + SalesDataPoint.formatDate(sdp.date));
+
+			if (todayWeather == null)
+				System.err.println(station + "-" + SalesDataPoint.formatDate(sdp.date));
 			//Date tomorrowDate = new Date(date.
 			//WeatherDataPoint tomorrowWeather = weatherMap.get(station + "-" + tomorrowDate);
 			sdp.todayWeather = todayWeather;
